@@ -23,19 +23,21 @@ jobs:
 
       - name: 查找 Excel 文件并生成网站
         run: |
-          ENERGY=$(find data/ -name "*能源*" -o -name "*energy*" | head -1)
-          CHEM=$(find data/ -name "*化工*" -o -name "*chem*" | head -1)
+          FILES=$(find data/ -name "*.xlsx" | sort)
 
-          ARGS=""
-          if [ -n "$ENERGY" ]; then ARGS="$ARGS \"$ENERGY\""; fi
-          if [ -n "$CHEM" ];   then ARGS="$ARGS \"$CHEM\"";   fi
-
-          if [ -z "$ARGS" ]; then
+          if [ -z "$FILES" ]; then
             echo "❌ data/ 目录中没有找到 Excel 文件"
             exit 1
           fi
 
-          echo "📊 处理文件: $ARGS"
+          echo "📊 找到以下文件:"
+          echo "$FILES"
+
+          ARGS=""
+          while IFS= read -r f; do
+            ARGS="$ARGS \"$f\""
+          done <<< "$FILES"
+
           eval python scripts/update_tracker.py $ARGS \
             --template scripts/template.html \
             --output index.html
