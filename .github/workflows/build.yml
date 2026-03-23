@@ -1,0 +1,59 @@
+name: 更新化工利润追踪网站
+
+on:
+  push:
+    paths:
+      - 'data/**.xlsx'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python 依赖
+        run: pip install pandas openpyxl numpy
+
+      - name: 查找 Excel 文件并生成网站
+        run: |
+          ENERGY=$(find data/ -name "*能源*" -o -name "*energy*" | head -1)
+          CHEM=$(find data/ -name "*化工*" -o -name "*chem*" | head -1)
+
+          ARGS=""
+          if [ -n "$ENERGY" ]; then ARGS="$ARGS \"$ENERGY\""; fi
+          if [ -n "$CHEM" ];   then ARGS="$ARGS \"$CHEM\"";   fi
+
+          if [ -z "$ARGS" ]; then
+            echo "❌ data/ 目录中没有找到 Excel 文件"
+            exit 1
+          fi
+
+          echo "📊 处理文件: $ARGS"
+          eval python scripts/update_tracker.py $ARGS \
+            --template scripts/template.html \
+            --output index.html
+
+          echo "✅ 生成完成"
+
+      - name: 上传 Pages 产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
