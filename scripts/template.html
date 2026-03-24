@@ -184,7 +184,7 @@ function render(){
     if(q&&d.name.toLowerCase().indexOf(q)<0&&d.full_name.toLowerCase().indexOf(q)<0)return false;
     if(src&&d.source!==src)return false;
     var cat=document.getElementById('cat').value;
-    if(cat&&CAT[d.name]!==cat)return false;
+    if(if(cat&&(d.cat||'')!==cat)return false)return false;
     var s=st(d);
     if(FM==='low'&&s!=='lo')return false;
     if(FM==='high'&&s!=='hi')return false;
@@ -192,7 +192,7 @@ function render(){
   });
   data.sort(function(a,b){
     if(SK==='name')return SD*a.name.localeCompare(b.name,'zh');
-    if(SK==='cat')return SD*(CAT[a.name]||'').localeCompare(CAT[b.name]||'','zh');
+    if(SK==='cat')return SD*(a.cat||'').localeCompare(b.cat||'','zh');
     if(SK==='pct')return SD*((gp(a)||0)-(gp(b)||0));
     return SD*(a.change-b.change);
   });
@@ -222,7 +222,7 @@ function render(){
       +'<span class="bv" style="color:'+pc+';">'+pd+'%</span></div>'
       +'<div style="font-size:10px;color:#ccc;margin-top:1px;">'+pl+'</div></td>'
       +'<td><span class="bdg '+bdc+'">'+bdl+'</span></td>'
-      +'<td><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:#f0f0ee;color:#666;">'+( CAT[d.name]||'' )+'</span></td>'+'<td style="color:'+cc+';font-weight:600;font-size:12px;white-space:nowrap;">'+fc(d.change,d.unit)+'</td>'
+      +'<td><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:#f0f0ee;color:#666;">'+( d.cat||'' )+'</span></td>'+'<td style="color:'+cc+';font-weight:600;font-size:12px;white-space:nowrap;">'+fc(d.change,d.unit)+'</td>'
       +'<td style="font-size:12px;color:#bbb;">'+Math.round(d.data_years)+'年</td>'
       +'</tr>';
   }).join('');
