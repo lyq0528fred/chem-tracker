@@ -24,31 +24,30 @@ jobs:
       - name: 查找 Excel 文件并生成网站
         run: |
           FILES=$(find data/ -name "*.xlsx" | sort)
-
           if [ -z "$FILES" ]; then
             echo "❌ data/ 目录中没有找到 Excel 文件"
             exit 1
           fi
-
           echo "📊 找到以下文件:"
           echo "$FILES"
-
           ARGS=""
           while IFS= read -r f; do
             ARGS="$ARGS \"$f\""
           done <<< "$FILES"
-
           eval python scripts/update_tracker.py $ARGS \
             --template scripts/template.html \
-            --output index.html
-
-          echo "✅ 生成完成"
+            --output /tmp/index.html
+          echo "✅ 生成完成，文件大小: $(wc -c < /tmp/index.html) bytes"
 
       - name: 准备部署目录
         run: |
           mkdir -p _site
-          cp index.html _site/index.html
+          cp /tmp/index.html _site/index.html
           touch _site/.nojekyll
+          echo "📁 部署目录内容:"
+          ls -la _site/
+          echo "🔍 检查占位符:"
+          grep -c '__RAW__' _site/index.html && echo "❌ 占位符未替换!" || echo "✅ 占位符已替换"
 
       - name: 上传 Pages 产物
         uses: actions/upload-pages-artifact@v3
