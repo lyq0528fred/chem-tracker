@@ -17,7 +17,7 @@ UNIT_WHITELIST = {"元/吨", "美元/吨"}
 BASE_DATE = datetime(2000, 1, 1)
 ROLL_WINDOWS = {"3Y": 1095, "5Y": 1825, "10Y": 3650}
 CHUNK_SIZE = 38
-MAX_CHUNKS = 3
+MAX_CHUNKS = 7
 
 # ── 品类分类表 ─────────────────────────────────────────────────────────
 CAT = {
@@ -295,9 +295,6 @@ def build_html(template_path: str, results: list[dict], output_path: str, latest
     cidx, chunks = build_chunks(results)
     raw = [r["meta"] for r in results]
 
-    c0 = json.dumps(chunks[0], ensure_ascii=False, separators=(',', ':'))
-    c1 = json.dumps(chunks[1], ensure_ascii=False, separators=(',', ':'))
-    c2 = json.dumps(chunks[2], ensure_ascii=False, separators=(',', ':'))
     cidx_json = json.dumps(cidx, ensure_ascii=False, separators=(',', ':'))
     raw_json = json.dumps(raw, ensure_ascii=False, separators=(',', ':'))
 
@@ -306,12 +303,8 @@ def build_html(template_path: str, results: list[dict], output_path: str, latest
 
     html = tmpl
     html = html.replace('__CIDX__', cidx_json)
-    html = html.replace('__C0__', c0)
-    html = html.replace('__C1__', c1)
-    html = html.replace('__C2__', c2)
-    html = html.replace('__RAW__', raw_json)
-    html = html.replace('截至 2026-03-20', f'截至 {latest_date}')
-    html = html.replace('截至2026-03-20', f'截至{latest_date}')
+    for i, chunk in enumerate(chunks):
+        html = html.replace(f'__C{i}__', json.dumps(chunk, ensure_ascii=False, separators=(',', ':')))
 
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
