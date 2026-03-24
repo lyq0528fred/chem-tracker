@@ -48,6 +48,7 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html _site/index.html
+          touch _site/.nojekyll
 
       - name: 上传 Pages 产物
         uses: actions/upload-pages-artifact@v3
