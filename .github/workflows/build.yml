@@ -44,10 +44,15 @@ jobs:
 
           echo "✅ 生成完成"
 
+      - name: 准备部署目录
+        run: |
+          mkdir -p _site
+          cp index.html _site/index.html
+
       - name: 上传 Pages 产物
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
   deploy:
     needs: build
