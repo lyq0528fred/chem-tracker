@@ -67,11 +67,11 @@ canvas#cv{display:block;}
       <option value="">全部来源</option>
       <option value="能源毛利">能源毛利</option>
       <option value="化工利润">化工利润</option>
-      <option value="塑料">塑料</option>
-      <option value="化纤">化纤</option>
       <option value="合成橡胶">合成橡胶</option>
+      <option value="化纤">化纤</option>
       <option value="聚氨酯">聚氨酯</option>
       <option value="煤化工">煤化工</option>
+      <option value="塑料">塑料</option>
       <option value="盐化工">盐化工</option>
     </select>
     <select id="cat" onchange="render()">
@@ -85,11 +85,6 @@ canvas#cv{display:block;}
       <option value="环氧产业链">环氧产业链</option>
       <option value="乙二醇">乙二醇</option>
       <option value="化纤原料">化纤原料</option>
-      <option value="化纤成品">化纤成品</option>
-      <option value="塑料">塑料</option>
-      <option value="合成橡胶">合成橡胶</option>
-      <option value="聚氨酯">聚氨酯</option>
-      <option value="煤化工">煤化工</option>
       <option value="无机化工">无机化工</option>
       <option value="油品调和">油品调和</option>
       <option value="溶剂涂料">溶剂涂料</option>
@@ -184,7 +179,7 @@ function render(){
     if(q&&d.name.toLowerCase().indexOf(q)<0&&d.full_name.toLowerCase().indexOf(q)<0)return false;
     if(src&&d.source!==src)return false;
     var cat=document.getElementById('cat').value;
-    if(cat&&(d.cat||'')!==cat)return false)return false;
+    if(cat&&(d.cat||'')!==cat)return false;
     var s=st(d);
     if(FM==='low'&&s!=='lo')return false;
     if(FM==='high'&&s!=='hi')return false;
@@ -222,7 +217,7 @@ function render(){
       +'<span class="bv" style="color:'+pc+';">'+pd+'%</span></div>'
       +'<div style="font-size:10px;color:#ccc;margin-top:1px;">'+pl+'</div></td>'
       +'<td><span class="bdg '+bdc+'">'+bdl+'</span></td>'
-      +'<td><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:#f0f0ee;color:#666;">'+( d.cat||'' )+'</span></td>'+'<td style="color:'+cc+';font-weight:600;font-size:12px;white-space:nowrap;">'+fc(d.change,d.unit)+'</td>'
+      +'<td><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:#f0f0ee;color:#666;">'+(d.cat||'')+'</span></td>'+'<td style="color:'+cc+';font-weight:600;font-size:12px;white-space:nowrap;">'+fc(d.change,d.unit)+'</td>'
       +'<td style="font-size:12px;color:#bbb;">'+Math.round(d.data_years)+'年</td>'
       +'</tr>';
   }).join('');
