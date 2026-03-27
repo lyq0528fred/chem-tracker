@@ -299,17 +299,23 @@ def build_html(template_path: str, results: list[dict], output_path: str, latest
     raw_json = json.dumps(raw, ensure_ascii=False, separators=(',', ':'))
 
     with open(template_path, 'r', encoding='utf-8') as f:
-        tmpl = f.read()
+        html = f.read()
 
-    html = tmpl
     html = html.replace('__CIDX__', cidx_json)
-    for i, chunk in enumerate(chunks):
-        html = html.replace(f'__C{i}__', json.dumps(chunk, ensure_ascii=False, separators=(',', ':')))
+    html = html.replace('__RAW__', raw_json)
+    html = html.replace('__C0__', json.dumps(chunks[0] if len(chunks) > 0 else {}, ensure_ascii=False, separators=(',', ':')))
+    html = html.replace('__C1__', json.dumps(chunks[1] if len(chunks) > 1 else {}, ensure_ascii=False, separators=(',', ':')))
+    html = html.replace('__C2__', json.dumps(chunks[2] if len(chunks) > 2 else {}, ensure_ascii=False, separators=(',', ':')))
+    html = html.replace('__C3__', json.dumps(chunks[3] if len(chunks) > 3 else {}, ensure_ascii=False, separators=(',', ':')))
+    html = html.replace('__C4__', json.dumps(chunks[4] if len(chunks) > 4 else {}, ensure_ascii=False, separators=(',', ':')))
+    html = html.replace('__C5__', json.dumps(chunks[5] if len(chunks) > 5 else {}, ensure_ascii=False, separators=(',', ':')))
+    html = html.replace('__C6__', json.dumps(chunks[6] if len(chunks) > 6 else {}, ensure_ascii=False, separators=(',', ':')))
+    html = html.replace('截至 2026-03-20', f'截至 {latest_date}')
+    html = html.replace('截至2026-03-20', f'截至{latest_date}')
 
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
     print(f"✅ 输出: {output_path}  ({len(html.encode())//1024}KB)")
-
 
 # ── 主入口 ────────────────────────────────────────────────────────────
 def main():
