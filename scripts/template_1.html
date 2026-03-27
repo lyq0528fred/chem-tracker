@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>化工利润历史分位追踪</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f4;color:#1a1a18;font-size:14px;}
+.hdr{background:#fff;border-bottom:1px solid #e5;padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;}
+.hdr h1{font-size:17px;font-weight:700;}.hdr .src{font-size:11px;color:#aaa;}
+.main{padding:18px 24px;max-width:1200px;margin:0 auto;}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+input[type=text]{font-size:13px;padding:7px 12px;border-radius:8px;border:1px solid #ddd;color:#1a1a18;width:180px;outline:none;}
+select{font-size:13px;padding:7px 10px;border-radius:8px;border:1px solid #ddd;color:#1a1a18;cursor:pointer;background:#fff;outline:none;}
+.tabs{display:flex;gap:3px;background:#eee;border-radius:8px;padding:3px;}
+.tab{font-size:12px;padding:5px 12px;border-radius:6px;border:none;background:transparent;color:#666;cursor:pointer;font-weight:500;}
+.tab.on{background:#fff;color:#1a1a18;box-shadow:0 1px 4px rgba(0,0,0,.12);}
+.fbrow{display:flex;gap:6px;}
+.fb{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid #ddd;background:#fff;color:#666;cursor:pointer;font-weight:500;}
+.fb.a.on{background:#eee;border-color:#bbb;color:#1a1a18;}
+.fb.l.on{background:#fdf2ee;border-color:#e8a090;color:#b04020;}
+.fb.h.on{background:#eef5e8;border-color:#90c870;color:#3a6b15;}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.card{background:#fff;border-radius:10px;border:1px solid #e5;padding:14px 16px;}
+.card .lb{font-size:11px;color:#999;margin-bottom:4px;}.card .vl{font-size:24px;font-weight:700;}
+.vl.lo{color:#c03820;}.vl.hi{color:#3a7020;}.vl.mi{color:#444;}.vl.to{color:#aaa;}
+.tw{background:#fff;border-radius:10px;border:1px solid #e5;overflow:hidden;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead{background:#fafaf8;}
+th{padding:9px 13px;text-align:left;font-weight:500;font-size:11px;color:#999;border-bottom:1px solid #eee;white-space:nowrap;cursor:pointer;user-select:none;}
+th:hover{color:#444;}
+td{padding:9px 13px;border-bottom:1px solid #f0efe9;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr{cursor:pointer;}
+tbody tr:hover td{background:#fafaf8;}
+tbody tr.sel td{background:#eff3ff;}
+.nm{font-weight:600;}.nsb{font-size:11px;color:#bbb;margin-top:1px;}
+.bw{display:flex;align-items:center;gap:6px;min-width:120px;}
+.bt{flex:1;height:5px;background:#f0efe9;border-radius:3px;overflow:hidden;}
+.bf{height:100%;border-radius:3px;}
+.bv{font-size:12px;font-weight:700;min-width:36px;text-align:right;}
+.bdg{display:inline-flex;font-size:11px;padding:2px 9px;border-radius:20px;font-weight:600;}
+.blo{background:#fdf2ee;color:#b04020;}.bhi{background:#eef5e8;color:#3a7020;}.bmi{background:#f5f5f3;color:#999;}
+.cpanel{background:#fff;border-radius:10px;border:1px solid #e5;margin-top:14px;overflow:hidden;}
+.chdr{padding:14px 18px 10px;border-bottom:1px solid #f0efe9;display:flex;align-items:flex-start;justify-content:space-between;}
+.ctitle{font-size:15px;font-weight:700;}.csub{font-size:11px;color:#999;margin-top:2px;}
+.ccls{width:28px;height:28px;border-radius:50%;border:1px solid #eee;background:#f5f5f3;cursor:pointer;font-size:20px;color:#888;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;}
+.ccls:hover{background:#eee;}
+.cbody{padding:14px 18px;}
+.leg{display:flex;gap:18px;margin-bottom:10px;flex-wrap:wrap;}
+.li{display:flex;align-items:center;gap:6px;font-size:11px;color:#555;}
+.lsq{width:20px;height:3px;border-radius:2px;}
+.cbox{position:relative;width:100%;height:320px;}
+canvas#cv{display:block;}
+.tt{position:absolute;background:rgba(15,15,15,0.88);color:#fff;font-size:11px;line-height:1.6;padding:6px 10px;border-radius:6px;pointer-events:none;display:none;white-space:nowrap;z-index:5;}
+.foot{font-size:11px;color:#bbb;text-align:right;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <h1>化工利润历史分位追踪</h1>
+  <span class="src">钢联（隆众资讯）· 截至 2026-03-20 · 点击品种行查看历史滚动分位图</span>
+</div>
+<div class="main">
+  <div class="toolbar">
+    <input id="q" type="text" placeholder="搜索品种..." oninput="render()">
+    <select id="src" onchange="render()">
+      <option value="">全部来源</option>
+      <option value="能源毛利">能源毛利</option>
+      <option value="化工利润">化工利润</option>
+      <option value="合成橡胶">合成橡胶</option>
+      <option value="化纤">化纤</option>
+      <option value="聚氨酯">聚氨酯</option>
+      <option value="煤化工">煤化工</option>
+      <option value="塑料">塑料</option>
+      <option value="盐化工">盐化工</option>
+    </select>
+    <select id="cat" onchange="render()">
+      <option value="">全部品类</option>
+      <option value="烯烃">烯烃</option>
+      <option value="芳烃">芳烃</option>
+      <option value="醇醚酮">醇醚酮</option>
+      <option value="有机酸酯">有机酸酯</option>
+      <option value="丙烯酸酯">丙烯酸酯</option>
+      <option value="增塑剂">增塑剂</option>
+      <option value="环氧产业链">环氧产业链</option>
+      <option value="乙二醇">乙二醇</option>
+      <option value="化纤原料">化纤原料</option>
+      <option value="无机化工">无机化工</option>
+      <option value="油品调和">油品调和</option>
+      <option value="溶剂涂料">溶剂涂料</option>
+    </select>
+    <div class="tabs">
+      <button class="tab on" id="ta" onclick="setPct('all')">全历史</button>
+      <button class="tab" id="t5" onclick="setPct('5y')">近5年</button>
+      <button class="tab" id="t3" onclick="setPct('3y')">近3年</button>
+    </div>
+  </div>
+  <div class="toolbar" style="margin-top:-4px;">
+    <div class="fbrow">
+      <button class="fb a on" id="fa" onclick="setF('all')">全部品种</button>
+      <button class="fb l" id="fl" onclick="setF('low')">低位 ≤20%</button>
+      <button class="fb h" id="fh" onclick="setF('high')">高位 ≥80%</button>
+    </div>
+    <select id="ss" onchange="sortSel()">
+      <option value="pa">分位 低→高</option><option value="pd">分位 高→低</option>
+      <option value="na">品种名</option><option value="cd">变化 大→小</option>
+    </select>
+  </div>
+  <div class="cards" id="cards"></div>
+  <div class="tw">
+    <table><thead><tr>
+      <th onclick="cs('name')">品种 <span id="sn"></span></th>
+      <th>最新利润</th>
+      <th onclick="cs('pct')">历史分位 <span id="sp">↑</span></th>
+      <th>状态</th>
+      <th id="thcat" onclick="cs('cat')" style="cursor:pointer;">品类 <span id="scat"></span></th><th onclick="cs('change')">期间变化 <span id="sc2"></span></th>
+      <th>年限</th>
+    </tr></thead>
+    <tbody id="tb"></tbody></table>
+    <div id="emp" style="display:none;padding:2rem;text-align:center;color:#bbb;font-size:13px;">没有符合条件的品种</div>
+  </div>
+  <div class="cpanel" id="cp" style="display:none;">
+    <div class="chdr">
+      <div><div class="ctitle" id="ct"></div><div class="csub" id="cs2"></div></div>
+      <div class="ccls" onclick="closeChart()">&#215;</div>
+    </div>
+    <div class="cbody">
+      <div style="display:flex;gap:3px;background:#f0f0ee;border-radius:8px;padding:3px;margin-bottom:10px;width:fit-content;">
+        <button class="tab on" id="tw_all" onclick="setTW('all')">全部</button>
+        <button class="tab" id="tw_10y" onclick="setTW('10y')">近10年</button>
+        <button class="tab" id="tw_5y" onclick="setTW('5y')">近5年</button>
+        <button class="tab" id="tw_3y" onclick="setTW('3y')">近3年</button>
+        <button class="tab" id="tw_1y" onclick="setTW('1y')">近1年</button>
+      </div>
+      <div class="leg">
+        <div class="li"><div class="lsq" style="background:#4C72B0"></div>3年滚动分位</div>
+        <div class="li"><div class="lsq" style="background:#FF7F0E"></div>5年滚动分位</div>
+        <div class="li"><div class="lsq" style="background:#2CA02C"></div>10年滚动分位</div>
+        <div class="li" style="margin-left:8px;"><div class="lsq" style="height:0;border-top:2px dashed #e05050;margin-top:1px;"></div><span>高位线 80%</span></div>
+        <div class="li"><div class="lsq" style="height:0;border-top:2px dashed #2CA02C;margin-top:1px;"></div><span>低位线 20%</span></div>
+      </div>
+      </div>
+      <div class="cbox"><canvas id="cv"></canvas><div class="tt" id="tt"></div></div>
+    </div>
+  </div>
+  <div class="foot" id="ft"></div>
+</div>
+<script>
+window.onerror = function(msg, src, line, col, err) {
+  var d = document.createElement('div');
+  d.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#c00;color:#fff;padding:12px;font-family:monospace;font-size:12px;z-index:9999;white-space:pre-wrap;';
+  d.textContent = 'JS ERROR: ' + msg + '\nLine: ' + line + ' Col: ' + col + '\n' + (err ? err.stack : '');
+  document.body.appendChild(d);
+  return false;
+};
+
+var BASE = new Date('2000-01-01').getTime();
+function d2ms(days) { return BASE + days * 86400000; }
+
+var CIDX = __CIDX__;
+var CAT={"船用燃料油·180CST":"油品调和","沥青·生产毛利":"油品调和","石油焦·延迟焦化":"油品调和","煅烧焦·低硫":"油品调和","煅烧焦·中硫焦":"油品调和","再生油·生产毛利":"油品调和","加氢尾油·生产毛利":"油品调和","烷基化油·生产毛利":"油品调和","MTBE·气分醚化":"油品调和","MTBE·异构醚化":"油品调和","石蜡·生产毛利":"油品调和","芳烃溶剂油·高沸点":"芳烃","裂解C5·生产毛利":"烯烃","乙烯·MTO":"烯烃","乙烯·石脑油裂解":"烯烃","乙烯·轻烃裂解":"烯烃","丙烯·MTO":"烯烃","丙烯·PDH制":"烯烃","丙烯·石脑油裂解":"烯烃","丁二烯·丁烯氧化脱氢":"烯烃","丁二烯·碳四抽提法":"烯烃","纯苯·生产毛利":"芳烃","邻二甲苯·生产毛利":"芳烃","二甲苯·生产毛利":"芳烃","苯乙烯·非一体化装置":"芳烃","苯乙烯·一体化装置":"芳烃","PX·生产毛利":"芳烃","甲苯·生产毛利":"芳烃","加氢苯·生产毛利":"芳烃","酚酮·生产毛利":"芳烃","双酚A·生产毛利":"芳烃","苯酐·工业萘氧化法":"芳烃","苯酐·进口":"芳烃","苯酐·邻二甲苯氧化法":"芳烃","苯胺·生产毛利":"芳烃","乙醇·木薯普级":"醇醚酮","乙醇·糖蜜普级":"醇醚酮","异丙醇·丙酮加氢法":"醇醚酮","异丙醇·丙烯水合法":"醇醚酮","正丁醇·生产毛利":"醇醚酮","辛醇·生产毛利":"醇醚酮","异丁醇·生产毛利":"醇醚酮","丁酮·生产毛利":"醇醚酮","环己酮·生产毛利":"醇醚酮","MIBK·生产毛利":"醇醚酮","碳酸二甲酯·生产毛利":"醇醚酮","二甲醚·生产毛利":"醇醚酮","甲醇·焦炉气制":"醇醚酮","甲醛·生产毛利":"醇醚酮","甲烷氯化物·生产毛利":"醇醚酮","冰醋酸·生产毛利":"有机酸酯","醋酸仲丁酯·生产毛利":"有机酸酯","醋酸乙烯·电石法":"有机酸酯","醋酸乙烯·乙烯法":"有机酸酯","聚乙烯醇·生产毛利":"有机酸酯","乙酸酐·合成":"有机酸酯","乙酸酐·裂解":"有机酸酯","醋酸丁酯·生产毛利":"有机酸酯","乙酸乙酯·生产毛利":"有机酸酯","丙烯酸·生产毛利":"丙烯酸酯","丙烯酸甲酯·生产毛利":"丙烯酸酯","丙烯酸乙酯·生产毛利":"丙烯酸酯","丙烯酸丁酯·生产毛利":"丙烯酸酯","丙烯酸异辛酯·生产毛利":"丙烯酸酯","MMA·ACH法":"丙烯酸酯","MMA·C4法":"丙烯酸酯","甲基丙烯酸·生产毛利":"丙烯酸酯","DOP·生产毛利":"增塑剂","DOP·生产毛利(浙江（日）)":"增塑剂","DOP·生产毛利(江苏（日）)":"增塑剂","DBP·生产毛利":"增塑剂","邻苯二甲酸二壬酯·生产毛利":"增塑剂","环氧丙烷·氯醇法":"环氧产业链","环氧丙烷·异丁烷共氧化法":"环氧产业链","环氧乙烷·MTO法":"环氧产业链","环氧乙烷·外采进口乙烯":"环氧产业链","环氧乙烷·甲醇制烯烃法":"环氧产业链","环氧树脂·E-12":"环氧产业链","环氧树脂·E-51":"环氧产业链","环氧氯丙烷·甘油法":"环氧产业链","环氧氯丙烷·高温氯化法":"环氧产业链","MEG·甲醇制":"乙二醇","MEG·煤基合成气制":"乙二醇","MEG·石脑油一体化制":"乙二醇","MEG·乙烯制":"乙二醇","碳酸乙烯酯·电池级":"乙二醇","碳酸甲乙酯·生产毛利":"乙二醇","乙二醇丁醚·生产毛利":"乙二醇","乙二醇乙醚醋酸酯·生产毛利":"乙二醇","聚羧酸减水剂单体·生产毛利":"乙二醇","一乙醇胺·生产毛利":"乙二醇","二乙醇胺·生产毛利":"乙二醇","三乙醇胺·生产毛利":"乙二醇","丙二醇甲醚·生产毛利":"乙二醇","丙二醇甲醚醋酸酯·生产毛利":"乙二醇","乙腈·生产毛利":"化纤原料","丙烯腈·生产毛利":"化纤原料","PTA·生产毛利":"化纤原料","PTA·加工费":"化纤原料","己内酰胺·生产毛利":"化纤原料","硫酸·生产毛利":"无机化工","硝酸·生产毛利":"无机化工","重质纯碱·氨碱法":"无机化工","重质纯碱·联产法":"无机化工","纯碱·联碱法":"无机化工","轻质纯碱·联产法":"无机化工","碳化钙·生产毛利":"无机化工","双氧水·生产毛利":"无机化工","钛白粉·生产毛利":"无机化工","顺酐·正丁烷氧化法":"溶剂涂料","UPR·生产毛利":"溶剂涂料","裂解C5·生产毛利(中国（周）)":"烯烃","芳烃溶剂油·高沸点(华东地区（日）)":"芳烃"};
+var CHUNKS = [__C0__,__C1__,__C2__,__C3__,__C4__,__C5__,__C6__];
+var RAW = __RAW__;
+
+var PM='all',FM='all',SK='pct',SD=1,SEL=null,chartData=null,TW='all';
+function gp(d){return PM==='3y'?d.pct_3y:PM==='5y'?d.pct_5y:d.pct_all;}
+function st(d){var p=gp(d);return p==null?'mi':p<=20?'lo':p>=80?'hi':'mi';}
+function bc(p){return p<=20?'#c03820':p>=80?'#3a7020':'#888';}
+function fv(v,u){var n=Math.abs(v)>=10000?(v/10000).toFixed(1)+'万':v.toLocaleString('zh-CN',{maximumFractionDigits:1});return n+' '+u;}
+function fc(c,u){var s=c>0?'+':'';var n=Math.abs(c)>=10000?(c/10000).toFixed(1)+'万':c.toLocaleString('zh-CN',{maximumFractionDigits:1});return s+n+' '+u;}
+function setPct(m){PM=m;['ta','t5','t3'].forEach(function(id,i){document.getElementById(id).className='tab'+([m==='all',m==='5y',m==='3y'][i]?' on':'');});render();}
+function setF(m){FM=m;document.getElementById('fa').className='fb a'+(m==='all'?' on':'');document.getElementById('fl').className='fb l'+(m==='low'?' on':'');document.getElementById('fh').className='fb h'+(m==='high'?' on':'');render();}
+function cs(k){if(SK===k)SD*=-1;else{SK=k;SD=1;}render();}
+function sortSel(){var v=document.getElementById('ss').value;if(v==='pa'){SK='pct';SD=1;}else if(v==='pd'){SK='pct';SD=-1;}else if(v==='na'){SK='name';SD=1;}else{SK='change';SD=-1;}render();}
+function render(){
+  var q=document.getElementById('q').value.trim().toLowerCase();
+  var src=document.getElementById('src').value;
+  var data=RAW.filter(function(d){
+    if(q&&d.name.toLowerCase().indexOf(q)<0&&d.full_name.toLowerCase().indexOf(q)<0)return false;
+    if(src&&d.source!==src)return false;
+    var cat=document.getElementById('cat').value;
+    if(cat&&(d.cat||'')!==cat)return false;
+    var s=st(d);
+    if(FM==='low'&&s!=='lo')return false;
+    if(FM==='high'&&s!=='hi')return false;
+    return true;
+  });
+  data.sort(function(a,b){
+    if(SK==='name')return SD*a.name.localeCompare(b.name,'zh');
+    if(SK==='cat')return SD*(a.cat||'').localeCompare(b.cat||'','zh');
+    if(SK==='pct')return SD*((gp(a)||0)-(gp(b)||0));
+    return SD*(a.change-b.change);
+  });
+  var ids={sn:'name',sp:'pct',sc2:'change',scat:'cat'};
+  Object.keys(ids).forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=SK===ids[id]?(SD===1?'↑':'↓'):'';});
+  var loN=RAW.filter(function(d){var p=gp(d);return p!=null&&p<=20;}).length;
+  var hiN=RAW.filter(function(d){var p=gp(d);return p!=null&&p>=80;}).length;
+  document.getElementById('cards').innerHTML=
+    '<div class="card"><div class="lb">低位品种 (≤20%)</div><div class="vl lo">'+loN+'</div></div>'+
+    '<div class="card"><div class="lb">正常区间</div><div class="vl mi">'+(RAW.length-loN-hiN)+'</div></div>'+
+    '<div class="card"><div class="lb">高位品种 (≥80%)</div><div class="vl hi">'+hiN+'</div></div>'+
+    '<div class="card"><div class="lb">追踪总数</div><div class="vl to">'+RAW.length+'</div></div>';
+  var tb=document.getElementById('tb'),em=document.getElementById('emp');
+  if(!data.length){tb.innerHTML='';em.style.display='';return;}
+  em.style.display='none';
+  var pl={all:'全历史','5y':'近5年','3y':'近3年'}[PM];
+  tb.innerHTML=data.map(function(d){
+    var p=gp(d),s=st(d);
+    var bdc=s==='lo'?'blo':s==='hi'?'bhi':'bmi';
+    var bdl=s==='lo'?'历史低位':s==='hi'?'历史高位':'正常区间';
+    var cc=d.change>0?'#3a7020':d.change<0?'#b04020':'#888';
+    var pd=p!=null?p.toFixed(1):'N/A',pc=p!=null?bc(p):'#888',pb=Math.min(p||0,100);
+    return '<tr data-name="'+encodeURIComponent(d.name)+'" class="'+(d.name===SEL?'sel':'')+'">'
+      +'<td><div class="nm">'+d.name+'</div><div class="nsb">'+d.full_name.split('：').slice(1,3).join('·')+'</div></td>'
+      +'<td style="font-weight:700;white-space:nowrap;">'+fv(d.latest,d.unit)+'</td>'
+      +'<td><div class="bw"><div class="bt"><div class="bf" style="width:'+pb+'%;background:'+pc+';"></div></div>'
+      +'<span class="bv" style="color:'+pc+';">'+pd+'%</span></div>'
+      +'<div style="font-size:10px;color:#ccc;margin-top:1px;">'+pl+'</div></td>'
+      +'<td><span class="bdg '+bdc+'">'+bdl+'</span></td>'
+      +'<td><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:#f0f0ee;color:#666;">'+(d.cat||'')+'</span></td>'+'<td style="color:'+cc+';font-weight:600;font-size:12px;white-space:nowrap;">'+fc(d.change,d.unit)+'</td>'
+      +'<td style="font-size:12px;color:#bbb;">'+Math.round(d.data_years)+'年</td>'
+      +'</tr>';
+  }).join('');
+  // Attach click handlers after render
+  document.querySelectorAll('#tb tr').forEach(function(tr){
+    tr.addEventListener('click',function(){clickRow(this);});
+  });
+  document.getElementById('ft').textContent='钢联（隆众资讯）· '+RAW.length+'个品种 · 显示'+data.length+'个 · 截至2026-03-20';
+}
+function clickRow(tr){
+  var name=decodeURIComponent(tr.dataset.name);
+  if(SEL===name){
+    SEL=null;
+    document.querySelectorAll('#tb tr').forEach(function(r){r.className='';});
+    document.getElementById('cp').style.display='none';
+    chartData=null;
+    return;
+  }
+  SEL=name;
+  document.querySelectorAll('#tb tr').forEach(function(r){r.className='';});
+  tr.className='sel';
+  showChart(name);
+}
+function showChart(name){
+  var meta=RAW.find(function(d){return d.name===name;});
+  document.getElementById('cp').style.display='';
+  document.getElementById('ct').textContent=name+' — 利润历史分位走势（滚动窗口）';
+  document.getElementById('cs2').textContent=meta?meta.full_name:'';
+  setTimeout(function(){document.getElementById('cp').scrollIntoView({behavior:'smooth',block:'nearest'});},80);
+  var ci=CIDX[name];
+  if(ci===undefined||ci===null){document.getElementById('ct').textContent+=' (暂无图表数据)';return;}
+  var sd=CHUNKS[ci]&&CHUNKS[ci][name];
+  if(!sd){document.getElementById('ct').textContent+=' (数据加载失败)';return;}
+  chartData=sd;
+  TW='all';
+  setTW('all');
+  drawChart(sd);
+}
+function closeChart(){
+  document.getElementById('cp').style.display='none';
+  SEL=null;
+  document.querySelectorAll('#tb tr').forEach(function(r){r.className='';});
+  chartData=null;
+}
+function setTW(w){
+  TW=w;
+  ['all','10y','5y','3y','1y'].forEach(function(v){
+    var el=document.getElementById('tw_'+v);
+    if(el) el.className='tab'+(TW===v?' on':'');
+  });
+  if(chartData) drawChart(chartData);
+}
+function drawChart(sd){
+  try { _drawChart(sd); } catch(e) {
+    var d=document.createElement('div');
+    d.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#900;color:#fff;padding:12px;font-family:monospace;font-size:11px;z-index:9999;white-space:pre-wrap;';
+    d.textContent='drawChart ERROR: '+e.message+'\n'+e.stack;
+    document.body.appendChild(d);
+  }
+}
+function _drawChart(sd){
+  var canvas=document.getElementById('cv');
+  var box=canvas.parentElement;
+  var W=box.clientWidth||800,H=320;
+  var dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  var ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  var P={t:24,r:20,b:38,l:50};
+  var cw=W-P.l-P.r,ch=H-P.t-P.b;
+  var allMs=[];
+  ['3Y','5Y','10Y'].forEach(function(k){(sd[k]||[]).forEach(function(p){allMs.push(BASE+p[0]*86400000);});});
+  if(!allMs.length)return;
+  var maxMs=Math.max.apply(null,allMs);
+  var nowMs=maxMs;
+  var twMap={all:0,'10y':10,'5y':5,'3y':3,'1y':1};
+  var twYears=twMap[TW]||0;
+  var minMs = twYears>0 ? Math.max(Math.min.apply(null,allMs), nowMs-twYears*365.25*86400000) : Math.min.apply(null,allMs);
+  function xp(ms){return P.l+(ms-minMs)/(maxMs-minMs)*cw;}
+  function yp(v){return P.t+(1-v/100)*ch;}
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  // Y gridlines
+  [0,20,40,60,80,100].forEach(function(v){
+    var y=yp(v);
+    ctx.strokeStyle='rgba(0,0,0,0.06)';ctx.lineWidth=1;ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(P.l+cw,y);ctx.stroke();
+    ctx.fillStyle='#aaa';ctx.font='11px sans-serif';ctx.textAlign='right';
+    ctx.fillText(v+'%',P.l-5,y+4);
+  });
+  // X axis years
+  var y0=new Date(minMs).getFullYear(),y1=new Date(maxMs).getFullYear();
+  ctx.textAlign='center';ctx.fillStyle='#aaa';ctx.font='11px sans-serif';
+  for(var yr=Math.ceil(y0/2)*2;yr<=y1;yr+=2){
+    var ms=new Date(yr+'-01-01').getTime();
+    if(ms<minMs||ms>maxMs)continue;
+    var x=xp(ms);
+    ctx.strokeStyle='rgba(0,0,0,0.06)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x,P.t);ctx.lineTo(x,P.t+ch);ctx.stroke();
+    ctx.fillText(yr,x,P.t+ch+14);
+  }
+  // Reference lines
+  [[20,'#2CA02C','低位区 20%'],[80,'#e05050','高估区 80%']].forEach(function(item){
+    var y=yp(item[0]);
+    ctx.setLineDash([7,4]);ctx.strokeStyle=item[1];ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(P.l+cw,y);ctx.stroke();
+    ctx.setLineDash([]);ctx.fillStyle=item[1];ctx.font='bold 10px sans-serif';ctx.textAlign='left';
+    ctx.fillText(item[2],P.l+4,y-4);
+  });
+  // Series lines
+  [['3Y','#4C72B0'],['5Y','#FF7F0E'],['10Y','#2CA02C']].forEach(function(s){
+    var pts=sd[s[0]]||[];if(!pts.length)return;
+    ctx.setLineDash([]);ctx.strokeStyle=s[1];ctx.lineWidth=1.8;ctx.beginPath();
+    var first=true;
+    pts.forEach(function(p){var x=xp(BASE+p[0]*86400000),y=yp(p[1]);if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);});
+    ctx.stroke();
+  });
+  // Tooltip
+  var tt=document.getElementById('tt');
+  canvas.onmousemove=function(e){
+    var r=canvas.getBoundingClientRect();
+    var mx=e.clientX-r.left,my=e.clientY-r.top;
+    if(mx<P.l||mx>P.l+cw||my<P.t||my>P.t+ch){tt.style.display='none';return;}
+    var ratio=(mx-P.l)/cw,ms=minMs+ratio*(maxMs-minMs);
+    var best=null,bd=Infinity;
+    (sd['3Y']||[]).forEach(function(p){var d=Math.abs(BASE+p[0]*86400000-ms);if(d<bd){bd=d;best=p[0];}});
+    if(!best){tt.style.display='none';return;}
+    var bms=BASE+best*86400000,dt=new Date(bms);
+    var ds=dt.getFullYear()+'-'+(dt.getMonth()<9?'0':'')+(dt.getMonth()+1)+'-'+(dt.getDate()<10?'0':'')+dt.getDate();
+    var html='<b>'+ds+'</b>';
+    [['3Y','#7BA0D4','3年'],['5Y','#FFB060','5年'],['10Y','#70C070','10年']].forEach(function(s){
+      var pts=sd[s[0]]||[],val=null;
+      for(var i=0;i<pts.length;i++){if(pts[i][0]===best){val=pts[i][1];break;}}
+      if(val!=null)html+='<br><span style="color:'+s[1]+'">'+s[2]+': '+val.toFixed(1)+'%</span>';
+    });
+    tt.innerHTML=html;tt.style.display='block';
+    var tx=mx+14,ty=my-10;
+    if(tx+130>W)tx=mx-140;
+    tt.style.left=tx+'px';tt.style.top=ty+'px';
+  };
+  canvas.onmouseleave=function(){tt.style.display='none';};
+}
+window.addEventListener('resize',function(){if(chartData)drawChart(chartData);});
+render();
+
+</script>
+</body></html>
